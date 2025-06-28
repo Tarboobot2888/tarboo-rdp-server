@@ -10,8 +10,7 @@ jobs:
       - name: Download and extract ngrok
         run: |
           Invoke-WebRequest https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-stable-windows-amd64.zip -OutFile ngrok.zip
-          Expand-Archive ngrok.zip -DestinationPath .
-          Move-Item -Path ".\ngrok-stable-windows-amd64\ngrok.exe" -Destination ".\ngrok.exe"
+          Expand-Archive ngrok.zip
 
       - name: Add user and enable RDP
         run: |
@@ -24,13 +23,15 @@ jobs:
         env:
           NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
         run: |
-          .\ngrok.exe authtoken $env:NGROK_AUTH_TOKEN
+          cd ngrok-stable-windows-amd64
+          ./ngrok.exe authtoken $env:NGROK_AUTH_TOKEN
 
       - name: Start ngrok tunnel
         run: |
+          cd ngrok-stable-windows-amd64
           Start-Process -NoNewWindow -FilePath ".\ngrok.exe" -ArgumentList "tcp 3389"
           Start-Sleep -Seconds 10
 
       - name: Show ngrok tunnel info
         run: |
-          Invoke-WebRequest -Uri http://127.0.0.1:4040/api/tunnels | Select-Object -ExpandProperty Content
+          curl http://127.0.0.1:4040/api/tunnels
